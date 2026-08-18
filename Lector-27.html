@@ -92,7 +92,20 @@ details.essay .lbl{font-family:system-ui,sans-serif;font-size:11px;letter-spacin
 .vs h2 small{display:block;font-weight:400;font-size:13.5px;color:var(--dim);
  font-family:system-ui,sans-serif;margin-top:3px;letter-spacing:.01em}
 .vs .tr{font-family:system-ui,sans-serif;font-size:10.5px;letter-spacing:.07em;
- text-transform:uppercase;color:var(--dim);margin:10px 0 2px}
+ text-transform:uppercase;color:var(--dim);margin:9px 0 2px;cursor:pointer;
+ min-height:44px;display:flex;align-items:center;gap:9px;
+ -webkit-user-select:none;user-select:none}
+.vs .tr i{flex:1;height:1px;background:var(--line)}
+.vs .tr::after{content:"plegar";letter-spacing:0;text-transform:none;font-size:12.5px;
+ font-weight:600;color:var(--gold)}
+.vs.fold .tr::after{content:"desplegar"}
+.vs .tr em{flex:0 0 auto;width:9px;height:9px;border-right:2px solid var(--gold);
+ border-bottom:2px solid var(--gold);transform:rotate(-135deg) translate(-3px,-3px);
+ transition:transform .18s}
+.vs.fold .tr em{transform:rotate(45deg) translate(-2px,-2px)}
+/* folded, the row still shows its name -- only the passages go away */
+.vs.fold{padding-bottom:10px}
+.vs.fold .vp,.vs.fold .vsx{display:none}
 .vp{border-top:1px solid var(--line);padding:10px 0 4px}
 .vp .r{font-family:system-ui,sans-serif;font-size:11px;letter-spacing:.05em;
  text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:5px}
@@ -199,9 +212,11 @@ kbd{font:11px system-ui;border:1px solid var(--line);border-bottom-width:2px;
  .more{margin-top:1px}
  .s{padding:6px 6px}
  main{padding:10px 12px 0}
- .meta{font-size:11.5px;padding-bottom:8px;margin-bottom:10px;
+ /* overflow clips at the PADDING box, so any padding-bottom here leaks a sliced
+    third line into the gap. Keep the clamped state flush and space it with margin. */
+ .meta{font-size:11.5px;padding-bottom:0;margin-bottom:10px;cursor:pointer;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
- .meta.open{-webkit-line-clamp:unset;display:block}
+ .meta.open{-webkit-line-clamp:unset;display:block;padding-bottom:8px}
  details.essay summary{padding:9px 0;font-size:12px}
 }
 </style></head><body>
@@ -262,6 +277,10 @@ if(DATA.seedDate>(ST._v||'')){ Object.assign(ST.notes,DATA.seed.notes||{});
   Object.assign(ST.sent,DATA.seed.sent||{}); ST._v=DATA.seedDate;
   localStorage.setItem(KEY,JSON.stringify(ST)); }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}};
+// Front matter folds once for the whole section -- ST is keyed per row, and folding
+// nine times over would not be folding.
+const FKEY='mg-es-front';
+let vsFold=localStorage.getItem(FKEY)==='1';
 
 let cur=null, loop=false, chain=false, rate=1, essMode=false;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -313,9 +332,10 @@ function render(){
   // The row opens the way the grid does: its name, then the four passages it rests on.
   if(DATA.verses&&DATA.verses.length){
     const nx=DATA.verses.filter(v=>v.en_kind==='excerpt').length;
-    h+='<section class="vs"><h2>'+esc(DATA.title_es)+
+    h+='<section class="vs'+(vsFold?' fold':'')+'"><h2>'+esc(DATA.title_es)+
        '<small>'+esc(DATA.title_en)+'</small></h2>'+
-       '<div class="tr">Los cuatro pasajes · español NVI · inglés TPT</div>'+
+       '<div class="tr"><span>Los cuatro pasajes · español NVI · inglés TPT</span>'+
+       '<i></i><em></em></div>'+
        DATA.verses.map(v=>'<div class="vp"><div class="r"><b>'+esc(v.role_es)+'</b> · '+
          esc(v.ref_es)+'</div><p class="es">'+esc(v.es)+'</p>'+
          (v.en?'<p class="en'+(v.en_kind==='excerpt'?' x':'')+'">'+
@@ -377,6 +397,12 @@ document.addEventListener('click',ev=>{
   const t=ev.target;
   const nh=t.closest('.nh');
   if(nh){ nh.parentElement.classList.toggle('open'); return; }
+  const tr=t.closest('.vs .tr');
+  if(tr){ const sec=tr.closest('.vs');
+          vsFold=!sec.classList.contains('fold');
+          sec.classList.toggle('fold',vsFold);
+          try{localStorage.setItem(FKEY,vsFold?'1':'0')}catch(e){}
+          return; }
   const ez=t.closest('.ez');
   if(ez){ essMode=true; loop=false; chainOff(); speak(+ez.dataset.k, view==='EN'?'en':'es'); return; }
   const n=t.closest('.n');
