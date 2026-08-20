@@ -1,8 +1,13 @@
-// Cache everything on install; serve from cache first so the app works offline.
-const V = 'memoria-v6';
+// Offline cache. Bumping V alone is NOT enough to ship an update:
+// GitHub Pages serves everything with cache-control: max-age=600, and cache.addAll()
+// fetches through the HTTP cache, so a new version would happily store the OLD bytes.
+// Every precache request therefore forces a network fetch with {cache:'reload'}.
+const V = 'memoria-v7';
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-180.png", "./Memory-Palace.html", "./Lector-23.html", "./Lector-24.html", "./Lector-25.html", "./Lector-26.html", "./Lector-27.html", "./Lector-28.html", "./Lector-29.html", "./Lector-30.html", "./Lector-31.html", "./Indice-de-Trozos.html"];
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(V).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(V)
+    .then(c => c.addAll(FILES.map(u => new Request(u, {cache: 'reload'}))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks =>
@@ -10,5 +15,18 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== location.origin) return;
+  // Pages are network-first so an update lands the moment there is signal;
+  // the cache is the fallback that keeps the app working with no signal.
+  const isPage = e.request.mode === 'navigate' || e.request.destination === 'document';
+  if (isPage) {
+    e.respondWith(fetch(e.request).then(r => {
+      const copy = r.clone();
+      caches.open(V).then(c => c.put(e.request, copy)).catch(() => {});
+      return r;
+    }).catch(() => caches.match(e.request, {ignoreSearch: true})));
+    return;
+  }
   e.respondWith(caches.match(e.request, {ignoreSearch: true}).then(r => r || fetch(e.request)));
 });

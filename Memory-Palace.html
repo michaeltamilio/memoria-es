@@ -355,5 +355,5 @@ window.addEventListener('beforeunload',()=>{ if(SS)SS.cancel(); });
 render(); setTheme(theme); setRate(rate); setReps(reps);
 if(!SS){ $('#pill').innerHTML='This browser has no speech synthesis.'; }
 </script>
-<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");</script>
+<script>if("serviceWorker" in navigator){var _h=!!navigator.serviceWorker.controller,_d=false;navigator.serviceWorker.addEventListener("controllerchange",function(){if(!_h||_d)return;_d=true;location.reload();});navigator.serviceWorker.register("sw.js").catch(function(){});}</script>
 </body></html>

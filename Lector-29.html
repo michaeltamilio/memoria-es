@@ -650,5 +650,5 @@ if(hs&&sentEl(+hs[1])){ setCur(+hs[1],false);
   setTimeout(()=>sentEl(+hs[1]).scrollIntoView({block:'center'}),120); }
 else setCur(order[0],false);
 </script>
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+<script>if("serviceWorker" in navigator){var _h=!!navigator.serviceWorker.controller,_d=false;navigator.serviceWorker.addEventListener("controllerchange",function(){if(!_h||_d)return;_d=true;location.reload();});navigator.serviceWorker.register("sw.js").catch(function(){});}</script>
 </body></html>

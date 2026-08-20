@@ -37,10 +37,17 @@ p.sub{color:var(--dim);font-size:13px;margin:0 0 22px}
 Se abre como una app, sin barras, y funciona sin señal una vez que ha cargado la primera vez.
 <span id="off"></span></p>
 <script>
-if('serviceWorker' in navigator)
+if('serviceWorker' in navigator){
+  // When a new worker takes over an already-controlled page, reload once so the
+  // open document is not left showing the previous version.
+  var _had = !!navigator.serviceWorker.controller, _done = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(!_had || _done) return; _done = true; location.reload();
+  });
   navigator.serviceWorker.register('sw.js').then(()=>{
     document.getElementById('off').textContent='Guardado para uso sin conexión.';
   }).catch(()=>{
     document.getElementById('off').textContent='Sin modo offline (hace falta https).';
   });
+}
 </script></body></html>
