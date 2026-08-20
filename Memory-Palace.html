@@ -18,61 +18,70 @@
  --card:#1c1913;--goldbg:#312a15;--accent:#e0a0a0;--ok:#4fc7b2;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 body{margin:0;background:var(--bg);color:var(--ink);
- font:17px/1.55 "Iowan Old Style","Palatino Linotype",Georgia,serif;padding-bottom:34vh}
+ font:16px/1.5 "Iowan Old Style","Palatino Linotype",Georgia,serif;padding-bottom:30vh}
 .bar{position:sticky;top:0;z-index:40;background:var(--bg);
- border-bottom:1px solid var(--line);padding:9px 14px 8px;
- padding-top:calc(9px + env(safe-area-inset-top))}
-h1{margin:0;font-size:19px;letter-spacing:-.01em}
-h1 small{display:block;font-family:system-ui,sans-serif;font-size:12px;
- font-weight:400;color:var(--dim);letter-spacing:.02em;margin-top:2px}
-.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
-button{font-family:system-ui,sans-serif;font-size:13px;padding:9px 12px;min-height:40px;
+ border-bottom:1px solid var(--line);padding:6px 11px 6px;
+ padding-top:calc(6px + env(safe-area-inset-top))}
+h1{margin:0;font-size:15px;letter-spacing:-.01em;display:inline-block}
+/* One line, swipe for the rest. Wrapping controls were eating three rows on a phone. */
+.tools{display:flex;flex-wrap:nowrap;gap:5px;margin-top:6px;align-items:center;
+ overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+ scrollbar-width:none;padding-bottom:1px}
+.tools::-webkit-scrollbar{display:none}
+.tools>*{flex:0 0 auto}
+button{font-family:system-ui,sans-serif;font-size:12.5px;padding:7px 10px;min-height:38px;
  border:1px solid var(--line);background:var(--card);color:var(--ink);
- border-radius:9px;cursor:pointer}
+ border-radius:8px;cursor:pointer;white-space:nowrap}
 button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.pill{font-family:system-ui,sans-serif;font-size:11.5px;color:var(--dim);line-height:1.35}
-main{padding:12px 14px 0;max-width:760px;margin:0 auto}
-.sec{margin-bottom:16px}
-.sh{display:flex;gap:10px;align-items:flex-start;cursor:pointer;min-height:44px;
- padding:11px 12px;border:1px solid var(--gold);border-radius:12px;background:var(--goldbg);
+.pill{font-family:system-ui,sans-serif;font-size:11px;color:var(--dim);
+ margin-left:8px;white-space:nowrap}
+main{padding:8px 11px 0;max-width:760px;margin:0 auto}
+.sec{margin-bottom:9px}
+.sh{display:flex;gap:8px;align-items:center;cursor:pointer;min-height:42px;
+ padding:6px 11px;border:1px solid var(--gold);border-radius:10px;background:var(--goldbg);
  -webkit-user-select:none;user-select:none}
 .sn{flex:0 0 auto;font-family:system-ui,sans-serif;font-size:11px;font-weight:700;
- color:var(--gold);padding-top:4px;min-width:34px}
-.st{flex:1;min-width:0}
-.st b{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em}
-.st span{display:block;font-family:system-ui,sans-serif;font-size:11.5px;color:var(--dim);
- margin-top:2px;line-height:1.4}
-.sx{flex:0 0 auto;width:9px;height:9px;border-right:2px solid var(--gold);
+ color:var(--gold);min-width:14px}
+.st{flex:1;min-width:0;font-size:15px;font-weight:700;letter-spacing:-.01em;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sct{flex:0 0 auto;font-family:system-ui,sans-serif;font-size:11px;color:var(--dim)}
+.sx{flex:0 0 auto;width:8px;height:8px;border-right:2px solid var(--gold);
  border-bottom:2px solid var(--gold);transform:rotate(45deg) translate(-2px,-2px);
- margin-top:10px;transition:transform .18s}
-.sec.open .sx{transform:rotate(-135deg) translate(-3px,-3px)}
-.sb{display:none;padding:10px 0 0 10px;border-left:2px solid var(--line);margin:8px 0 0 12px}
+ transition:transform .18s}
+.sec.open .sx{transform:rotate(-135deg) translate(-2px,-2px)}
+.sb{display:none;padding:7px 0 0 8px;border-left:2px solid var(--line);margin:6px 0 0 8px}
 .sec.open .sb{display:block}
-.sc{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 10px 12px}
-.sc button{font-size:12px;padding:7px 10px;min-height:36px}
-.row{border:1px solid var(--line);border-radius:12px;background:var(--card);
- margin-bottom:12px;overflow:hidden}
-.rh{display:flex;gap:10px;align-items:flex-start;padding:12px 13px;cursor:pointer;
- min-height:44px;-webkit-user-select:none;user-select:none}
-.rn{flex:0 0 auto;font-family:system-ui,sans-serif;font-size:12px;font-weight:700;
- color:var(--gold);min-width:26px;padding-top:3px}
+.sc{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 7px 8px}
+.sc button{font-size:11.5px;padding:5px 9px;min-height:32px}
+.row{border:1px solid var(--line);border-radius:10px;background:var(--card);
+ margin-bottom:6px;overflow:hidden}
+.rh{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;cursor:pointer;
+ min-height:40px;-webkit-user-select:none;user-select:none}
+.rn{flex:0 0 auto;font-family:system-ui,sans-serif;font-size:11px;font-weight:700;
+ color:var(--gold);min-width:16px;padding-top:2px}
 .rt{flex:1;min-width:0}
-.rt b{display:block;font-size:16.5px;font-weight:600;line-height:1.3}
-.rt span{display:block;font-family:system-ui,sans-serif;font-size:12.5px;
- color:var(--dim);line-height:1.45;margin-top:3px}
+.rt b{display:block;font-size:15px;font-weight:600;line-height:1.28;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt b .tail{font-style:normal;font-weight:400;color:var(--dim);display:none}
+.row.open .rt b{white-space:normal}
+.row.open .rt b .tail{display:inline}
+/* the row summary is context, not memorisation material -- only show it once opened */
+.rt span{display:none;font-family:system-ui,sans-serif;font-size:12px;
+ color:var(--dim);line-height:1.4;margin-top:3px}
+.row.open .rt span{display:block}
 .row.done .rn::after{content:" ✓";color:var(--ok)}
 .rx{flex:0 0 auto;width:9px;height:9px;border-right:2px solid var(--gold);
  border-bottom:2px solid var(--gold);transform:rotate(45deg) translate(-2px,-2px);
  margin-top:9px;transition:transform .18s}
 .row.open .rx{transform:rotate(-135deg) translate(-3px,-3px)}
-.rb{display:none;padding:0 13px 12px}
+.rb{display:none;padding:0 10px 9px}
 .row.open .rb{display:block}
-.p{border-top:1px solid var(--line);padding:10px 0 4px}
-.p .r{font-family:system-ui,sans-serif;font-size:11px;letter-spacing:.05em;
- text-transform:uppercase;color:var(--dim);margin-bottom:5px;
- display:flex;gap:8px;align-items:center}
+.p{border-top:1px solid var(--line);padding:7px 0 3px}
+.p .r{font-family:system-ui,sans-serif;font-size:10px;letter-spacing:.04em;
+ text-transform:uppercase;color:var(--dim);margin-bottom:3px;
+ display:flex;gap:6px;align-items:center}
 .p .r b{color:var(--gold);font-weight:700}
-.p .t{margin:0 0 7px;font-size:15.5px;line-height:1.5;cursor:pointer}
+.p .t{margin:0 0 5px;font-size:14.5px;line-height:1.45;cursor:pointer}
 .p .t.ph{font-style:italic;color:var(--dim)}
 .p .na{margin:0 0 6px;font-family:system-ui,sans-serif;font-size:11.5px;color:var(--dim)}
 .p.act{background:var(--goldbg);border-radius:8px;padding-left:8px;padding-right:8px}
@@ -80,7 +89,7 @@ main{padding:12px 14px 0;max-width:760px;margin:0 auto}
  text-transform:uppercase;color:var(--dim);border:1px solid var(--line);
  border-radius:4px;padding:1px 4px}
 .pc{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
-.pc button{font-size:12px;padding:7px 10px;min-height:36px}
+.pc button{font-size:11.5px;padding:5px 9px;min-height:32px}
 .add{width:100%;font:14px/1.5 system-ui,sans-serif;padding:8px;border-radius:8px;
  border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:6px}
 .help{max-width:760px;margin:16px auto 0;padding:0 14px;
@@ -92,7 +101,7 @@ kbd{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--lin
  border-radius:4px;padding:0 4px}
 </style></head><body>
 <div class="bar">
-  <h1>Memory Palace<small>The Memory Grid in English · 39 rows · The Passion Translation · read by Keenan</small></h1>
+  <h1>Memory Palace</h1><span class="pill" id="pill"></span>
   <div class="tools">
     <button id="ball">▶ Play everything</button>
     <button id="bstop">■ Stop</button>
@@ -103,7 +112,6 @@ kbd{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--lin
     <button id="bexp">Save progress</button>
     <button id="bimp">Load progress</button>
     <input id="file" type="file" accept="application/json" style="display:none">
-    <span class="pill" id="pill"></span>
   </div>
 </div>
 <main id="main"></main>
@@ -201,11 +209,11 @@ function render(){
     const done=mine.filter(r=>ST.done['r'+r.row]).length;
     const open=ST.opt['s'+si]!==false ? ' open' : '';
     h+='<section class="sec'+open+'" data-sec="'+si+'">'+
-       '<div class="sh"><div class="sn">'+(si+1)+'</div><div class="st"><b>'+esc(sec.name)+'</b>'+
-       '<span>'+(sec.sub?esc(sec.sub)+' &nbsp;·&nbsp; ':'')+'rows '+sec.from+'–'+sec.to+
-       ' &nbsp;·&nbsp; '+done+'/'+mine.length+' encoded</span></div><div class="sx"></div></div>'+
+       '<div class="sh"><div class="sn">'+(si+1)+'</div>'+
+       '<b class="st">'+esc(sec.name)+'</b>'+
+       '<span class="sct">'+done+'/'+mine.length+'</span><div class="sx"></div></div>'+
        '<div class="sb"><div class="sc">'+
-       '<button data-ps="'+si+'">▶ Play this section</button>'+
+       '<button data-ps="'+si+'">▶ Section</button>'+
        '<button data-pw="'+si+'">▶ Verses only</button></div>';
     mine.forEach(r=>{ h+=rowHTML(r); });
     h+='</div></section>';
@@ -215,8 +223,14 @@ function render(){
 }
 function rowHTML(r){
   const done=ST.done['r'+r.row]?' done':'';
+  // "Born Again — the one door into everything that follows": the part before the
+  // dash identifies the row, the rest is elaboration. Collapsed, one line is enough.
+  const dash=r.title.indexOf('\u2014');
+  const head=dash>0?r.title.slice(0,dash).trim():r.title;
+  const tail=dash>0?r.title.slice(dash).trim():'';
   let h='<section class="row'+done+'" data-row="'+r.row+'">'+
-     '<div class="rh"><div class="rn">'+r.row+'</div><div class="rt"><b>'+esc(r.title)+'</b>'+
+     '<div class="rh"><div class="rn">'+r.row+'</div><div class="rt">'+
+     '<b>'+esc(head)+(tail?'<i class="tail"> '+esc(tail)+'</i>':'')+'</b>'+
      (r.sub?'<span>'+esc(r.sub)+'</span>':'')+'</div><div class="rx"></div></div>'+
      '<div class="rb">'+
      '<div class="pc"><button data-pr="'+r.row+'">▶ Play this row</button>'+
@@ -246,9 +260,8 @@ function secCount(){
   SECS.forEach((sec,si)=>{
     const mine=ROWS.filter(r=>r.sec===si);
     const d=mine.filter(r=>ST.done['r'+r.row]).length;
-    const el=document.querySelector('.sec[data-sec="'+si+'"] .st span');
-    if(el)el.innerHTML=(sec.sub?esc(sec.sub)+' &nbsp;·&nbsp; ':'')+'rows '+sec.from+'–'+sec.to+
-      ' &nbsp;·&nbsp; '+d+'/'+mine.length+' encoded';
+    const el=document.querySelector('.sec[data-sec="'+si+'"] .sct');
+    if(el)el.textContent=d+'/'+mine.length;
   });
 }
 function count(){
@@ -256,7 +269,7 @@ function count(){
   let full=0, tot=0;
   ROWS.forEach(r=>r.passages.forEach((p,i)=>{ tot++;
     if(p.kind==='full'||(ST.text[r.row+'.'+i]||'').trim())full++; }));
-  $('#pill').innerHTML=d+' / '+ROWS.length+' rows encoded<br>'+full+' / '+tot+' passages with full text';
+  $('#pill').textContent=d+'/'+ROWS.length+' rows · '+full+'/'+tot+' full';
 }
 
 /* ---------- row + verse chains ---------- */
