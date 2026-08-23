@@ -143,6 +143,15 @@ main{padding:8px 11px 0;max-width:760px;margin:0 auto}
  color:var(--dim);font-size:12px;border:1px solid var(--line)}
 .p .t{margin:0 0 5px;font-size:14.5px;line-height:1.45;cursor:pointer}
 .p .t.ph{font-style:italic;color:var(--dim)}
+/* Recall mode: the reference is the cue, the text is the answer. */
+.rv{display:none}
+body.recall .p:not(.peek) .t{display:none}
+body.recall .p:not(.peek) .rv{display:flex;align-items:center;justify-content:center;
+ min-height:44px;margin:0 0 5px;border:1px dashed var(--line);border-radius:8px;
+ font-family:system-ui,sans-serif;font-size:11px;letter-spacing:.06em;
+ text-transform:uppercase;color:var(--dim);cursor:pointer;
+ -webkit-user-select:none;user-select:none}
+body.recall .p:not(.peek) .rv:active{border-color:var(--role,var(--gold));color:var(--role,var(--gold))}
 .p .na{margin:0 0 6px;font-family:system-ui,sans-serif;font-size:11.5px;color:var(--dim)}
 .p.act{background:var(--goldbg);border-radius:8px;padding-left:8px;padding-right:8px}
 .tag{font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.06em;
@@ -166,6 +175,7 @@ kbd{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--lin
     <button id="ball">▶ Play all</button>
     <button id="bstop">■ Stop</button>
     <button id="breps">Repeat ×1</button>
+    <button id="brecall" title="Hide the verses and test yourself">Recall</button>
     <button id="btheme" title="auto / light / dark">◐</button>
     <button id="brate">1.00×</button>
     <button id="bopen">Expand all</button>
@@ -364,6 +374,7 @@ function rowHTML(r){
           'title="Hear the whole chapter on bible.is">\ud83c\udfa7</a>':'')+'</div>'+
        '<div class="r"><b>'+esc(p.role)+'</b><span class="tag">'+tag+'</span></div>'+
        '<p class="t'+(isFull?'':' ph')+'" data-say="'+id+'">'+esc(body)+'</p>'+
+       '<div class="rv" data-peek="'+id+'">tap to reveal</div>'+
        (absent?'<p class="na">The Passion Translation has not released this book yet — '+
                'this is the grid’s key phrase.</p>':'')+
        (isFull||absent?'':'<textarea class="add" rows="3" data-add="'+id+'" '+
@@ -450,6 +461,7 @@ document.addEventListener('click',ev=>{
     const s=document.querySelector('.row[data-row="'+t.dataset.dn+'"]');
     s.classList.toggle('done',!!ST.done[k]);
     t.textContent=ST.done[k]?'✓ Encoded':'Mark encoded'; count(); secCount(); return; }
+  if(t.dataset.peek){ t.closest('.p').classList.add('peek'); return; }
   if(t.dataset.say){ const el=t.closest('.p');
     const [rw,ix]=t.dataset.say.split('.');
     const own=(ST.text[t.dataset.say]||'').trim();
@@ -475,9 +487,18 @@ function setTheme(t){ theme=t;
   $('#btheme').title = 'Theme: '+t+' \u2014 tap to change';
   try{localStorage.setItem(TKEY,t)}catch(e){} }
 function setRate(r){ rate=r; ST.opt.rate=r; save(); $('#brate').textContent=r.toFixed(2)+'×'; }
+let recall=!!ST.opt.recall;
+function setRecall(on){
+  recall=on;
+  document.body.classList.toggle('recall',on);
+  $('#brecall').classList.toggle('on',on);
+  $$('.p.peek').forEach(x=>x.classList.remove('peek'));   // re-arm every passage
+  ST.opt.recall=on; save();
+}
 function setReps(n){ reps=n; ST.opt.reps=n; save(); $('#breps').textContent='Repeat ×'+n; }
 
 $('#bstop').onclick=()=>stopAll();
+$('#brecall').onclick=()=>setRecall(!recall);
 $('#btheme').onclick=()=>setTheme(THEMES[(THEMES.indexOf(theme)+1)%3]);
 $('#brate').onclick=()=>{
   const i=RATES.indexOf(nearestRate(rate));
@@ -505,7 +526,7 @@ document.addEventListener('keydown',ev=>{
 });
 window.addEventListener('beforeunload',()=>{ if(SS)SS.cancel(); });
 
-render(); setTheme(theme); setRate(rate); setReps(reps);
+render(); setTheme(theme); setRate(rate); setReps(reps); setRecall(recall);
 if(!DATA.clips || !DATA.clips.length){
   $('#pill').innerHTML='No audio generated yet — using the browser voice.'; }
 </script>
