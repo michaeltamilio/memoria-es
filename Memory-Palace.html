@@ -113,20 +113,24 @@ main{padding:8px 11px 0;max-width:760px;margin:0 auto}
 .rb{display:none;padding:0 10px 9px}
 .row.open .rb{display:block}
 .p{border-top:1px solid var(--line);padding:7px 0 3px}
-.p .r{font-family:system-ui,sans-serif;font-size:10px;letter-spacing:.04em;
- text-transform:uppercase;color:var(--dim);margin-bottom:3px;
+/* The reference is what gets memorised first, so it leads the block. */
+.p .ph{display:flex;align-items:center;gap:8px;margin-bottom:1px}
+.p .ref{flex:1;min-width:0;font-family:"Iowan Old Style",Georgia,serif;
+ font-size:19px;font-weight:700;line-height:1.2;letter-spacing:-.01em;color:var(--role,var(--ink))}
+.p .r{font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.07em;
+ text-transform:uppercase;color:var(--dim);margin-bottom:5px;
  display:flex;gap:6px;align-items:center}
-.p .r b{color:var(--gold);font-weight:700}
+.p .r b{color:var(--dim);font-weight:700}
 /* A glance should say which of the four a passage is, without reading it. */
 .p[data-role="PROMISE"]    { --role:#2e7d4f }
 .p[data-role="CONDITION"]  { --role:#b3651a }
 .p[data-role="COMMAND"]    { --role:#2a5ea8 }
 .p[data-role="CONFESSION"] { --role:#6b4fa0 }
 .p[data-role="HINDRANCE"]  { --role:#a8324a }
-.p[data-role] .r b{color:var(--role)}
+.p[data-role] .r b{color:var(--role);opacity:.85}
 .p[data-role]{border-left:3px solid var(--role);padding-left:8px;
  border-top-left-radius:6px;border-bottom-left-radius:6px}
-.p .lis{margin-left:auto;flex:0 0 auto;width:30px;height:26px;display:flex;
+.p .lis{flex:0 0 auto;width:32px;height:28px;display:flex;
  align-items:center;justify-content:center;border-radius:6px;text-decoration:none;
  color:var(--dim);font-size:13px;border:1px solid var(--line);background:var(--bg)}
 .p .lis:active{border-color:var(--gold)}
@@ -159,12 +163,12 @@ kbd{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--lin
 <div class="bar">
   <h1>Memory Palace</h1><span class="pill" id="pill"></span>
   <div class="tools">
-    <button id="ball">▶ Play everything</button>
+    <button id="ball">▶ Play all</button>
     <button id="bstop">■ Stop</button>
     <button id="breps">Repeat ×1</button>
+    <button id="btheme" title="auto / light / dark">◐</button>
     <button id="brate">1.00×</button>
     <button id="bopen">Expand all</button>
-    <button id="btheme">Theme: auto</button>
     <button id="bexp">Save progress</button>
     <button id="bimp">Load progress</button>
     <input id="file" type="file" accept="application/json" style="display:none">
@@ -355,10 +359,10 @@ function rowHTML(r){
     const body=own||p.tpt||p.phrase;
     const tag=isFull?'TPT':(absent?'not yet in TPT':'key phrase');
     h+='<div class="p" data-id="'+id+'" data-role="'+esc(p.role||'')+'">'+
-       '<div class="r"><b>'+esc(p.role)+'</b> · '+esc(p.ref)+
-       '<span class="tag">'+tag+'</span>'+
+       '<div class="ph"><span class="ref">'+esc(p.ref)+'</span>'+
        (p.listen?'<a class="lis" href="'+esc(p.listen)+'" target="_blank" rel="noopener" '+
           'title="Hear the whole chapter on bible.is">\ud83c\udfa7</a>':'')+'</div>'+
+       '<div class="r"><b>'+esc(p.role)+'</b><span class="tag">'+tag+'</span></div>'+
        '<p class="t'+(isFull?'':' ph')+'" data-say="'+id+'">'+esc(body)+'</p>'+
        (absent?'<p class="na">The Passion Translation has not released this book yet — '+
                'this is the grid’s key phrase.</p>':'')+
@@ -467,7 +471,8 @@ let theme=localStorage.getItem(TKEY)||'auto';
 function setTheme(t){ theme=t;
   if(t==='auto')document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme',t);
-  $('#btheme').textContent='Theme: '+t;
+  $('#btheme').textContent = t==='auto' ? '\u25d0' : t==='light' ? '\u2600\ufe0e' : '\u263e';
+  $('#btheme').title = 'Theme: '+t+' \u2014 tap to change';
   try{localStorage.setItem(TKEY,t)}catch(e){} }
 function setRate(r){ rate=r; ST.opt.rate=r; save(); $('#brate').textContent=r.toFixed(2)+'×'; }
 function setReps(n){ reps=n; ST.opt.reps=n; save(); $('#breps').textContent='Repeat ×'+n; }
