@@ -354,23 +354,22 @@ function rowHTML(r){
   const dash=r.title.indexOf('\u2014');
   const head=dash>0?r.title.slice(0,dash).trim():r.title;
   const tail=dash>0?r.title.slice(dash).trim():'';
-  let h='<section class="row'+done+'" data-row="'+r.row+'">'+
+  let h='<section class="row'+done+'" data-row="'+r.row+'" data-ver="'+verOf(r.row)+'">'+
      '<div class="rh"><div class="rn">'+r.row+'</div><div class="rt">'+
      '<b>'+esc(head)+(tail?'<i class="tail"> '+esc(tail)+'</i>':'')+'</b>'+
      (r.sub?'<span>'+esc(r.sub)+'</span>':'')+'</div><div class="rx"></div></div>'+
      '<div class="rb">'+
      '<div class="pc"><button data-pr="'+r.row+'">▶ Play this row</button>'+
      '<button data-pv="'+r.row+'">▶ Verses only</button>'+
-     '<button data-dn="'+r.row+'">'+(done?'✓ Encoded':'Mark encoded')+'</button></div>';
+     '<button data-dn="'+r.row+'">'+(done?'✓ Encoded':'Mark encoded')+'</button>'+
+     (r.passages.some(x=>x.nkjv)
+        ? '<button data-rv="'+r.row+'" title="Switch this row\u2019s translation">'+
+          verOf(r.row)+'</button>' : '')+'</div>';
   r.passages.forEach((p,i)=>{
     const id=r.row+'.'+i;
-    const own=ST.text[id]&&ST.text[id].trim();
     const absent=p.kind==='absent';          // TPT has not published this book yet
-    // NKJV where we have it; otherwise fall back and say plainly which text this is.
-    const useN=ver==='NKJV'&&p.nkjv&&!own;
-    const isFull=useN||p.kind==='full'||own;
-    const body=own||(useN?p.nkjv:(p.tpt||p.phrase));
-    const tag=useN?'NKJV':(isFull?'TPT':(absent?'not yet in TPT':'key phrase'));
+    const f=bodyFor(p,id,verOf(r.row));
+    const own=f.own, isFull=f.isFull, body=f.body, tag=f.tag;
     h+='<div class="p" data-id="'+id+'" data-role="'+esc(p.role||'')+'">'+
        '<div class="ph"><span class="ref">'+esc(p.ref)+'</span>'+
        (p.listen?'<a class="lis" href="'+esc(p.listen)+'" target="_blank" rel="noopener" '+
@@ -418,10 +417,9 @@ function rowItems(row, versesOnly){
     const own=(ST.text[id]||'').trim();
     // Both translations are recorded: p-NN-i is TPT, n-NN-i is NKJV. Pick the clip
     // that matches what is on screen. Only text pasted in later has no recording.
-    const useN=ver==='NKJV'&&p.nkjv&&!own;
-    const body2=own||(useN?p.nkjv:(p.tpt||p.phrase));
-    if(body2) items.push({text:p.ref+'. '+body2,
-                          clip:(own?null:(useN?'n-':'p-')+pad(r.row)+'-'+i), el});
+    const f=bodyFor(p,id,verOf(r.row));
+    if(f.body) items.push({text:p.ref+'. '+f.body,
+                           clip:(f.own?null:(f.useN?'n-':'p-')+pad(r.row)+'-'+i), el});
   });
   return items;
 }
@@ -467,6 +465,11 @@ document.addEventListener('click',ev=>{
     const s=document.querySelector('.row[data-row="'+t.dataset.dn+'"]');
     s.classList.toggle('done',!!ST.done[k]);
     t.textContent=ST.done[k]?'✓ Encoded':'Mark encoded'; count(); secCount(); return; }
+  if(t.dataset.rv){ const row=+t.dataset.rv;
+    const next=verOf(row)==='TPT'?'NKJV':'TPT';
+    ST.opt.rv=ST.opt.rv||{}; ST.opt.rv[row]=next; save();
+    applyVer(document.querySelector('.row[data-row="'+row+'"]'),next);
+    return; }
   if(t.dataset.peek){ t.closest('.p').classList.add('peek'); return; }
   if(t.dataset.say){ const el=t.closest('.p');
     // In recall mode a revealed verse taps shut again. Playback stays on the row
@@ -475,7 +478,7 @@ document.addEventListener('click',ev=>{
     const [rw,ix]=t.dataset.say.split('.');
     const own=(ST.text[t.dataset.say]||'').trim();
     const rec=ROWS.find(x=>x.row===+rw), ps=rec&&rec.passages[+ix];
-    const useN=ver==='NKJV'&&ps&&ps.nkjv&&!own;
+    const useN=verOf(+rw)==='NKJV'&&ps&&ps.nkjv&&!own;
     play([{text:t.textContent, clip:(own?null:(useN?'n-':'p-')+pad(rw)+'-'+ix), el}]); return; }
 });
 document.addEventListener('input',ev=>{
@@ -500,11 +503,37 @@ function setTheme(t){ theme=t;
 function setRate(r){ rate=r; ST.opt.rate=r; save(); $('#brate').textContent=r.toFixed(2)+'×'; }
 let recall=!!ST.opt.recall;
 let ver=ST.opt.ver||'TPT';
+// A row may pin its own translation; otherwise it follows the global default.
+const verOf=row=>(ST.opt.rv&&ST.opt.rv[row])||ver;
+function bodyFor(p,id,v){
+  const own=(ST.text[id]||'').trim();
+  const useN=v==='NKJV'&&p.nkjv&&!own;
+  const isFull=useN||p.kind==='full'||own;
+  return {useN, isFull, own,
+          body:own||(useN?p.nkjv:(p.tpt||p.phrase)),
+          tag:useN?'NKJV':(isFull?'TPT':(p.kind==='absent'?'not yet in TPT':'key phrase'))};
+}
+// Swap the text in place. Re-rendering would collapse every open row and lose
+// the recall peeks, which makes comparing translations impossible.
+function applyVer(rowEl,v){
+  const row=+rowEl.dataset.row, r=ROWS.find(x=>x.row===row);
+  if(!r)return;
+  r.passages.forEach((p,i)=>{
+    const id=row+'.'+i, el=rowEl.querySelector('.p[data-id="'+id+'"]');
+    if(!el)return;
+    const f=bodyFor(p,id,v);
+    const t=el.querySelector('.t');
+    t.textContent=f.body; t.classList.toggle('ph',!f.isFull);
+    el.querySelector('.tag').textContent=f.tag;
+  });
+  rowEl.dataset.ver=v;
+  const b=rowEl.querySelector('[data-rv]'); if(b)b.textContent=v;
+}
 function setVer(v){
-  ver=v; ST.opt.ver=v; save();
+  ver=v; ST.opt.ver=v; ST.opt.rv={}; save();   // global choice clears row pins
   $('#bver').textContent=v;
   $('#bver').title='Showing '+v+' \u2014 tap to switch';
-  render(); setRecall(recall);
+  $$('.row').forEach(rowEl=>applyVer(rowEl,v));
 }
 function setRecall(on){
   recall=on;
