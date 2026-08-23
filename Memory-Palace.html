@@ -463,6 +463,9 @@ document.addEventListener('click',ev=>{
     t.textContent=ST.done[k]?'✓ Encoded':'Mark encoded'; count(); secCount(); return; }
   if(t.dataset.peek){ t.closest('.p').classList.add('peek'); return; }
   if(t.dataset.say){ const el=t.closest('.p');
+    // In recall mode a revealed verse taps shut again. Playback stays on the row
+    // buttons and the headphone, so the tap has one unambiguous meaning here.
+    if(recall&&el.classList.contains('peek')){ el.classList.remove('peek'); return; }
     const [rw,ix]=t.dataset.say.split('.');
     const own=(ST.text[t.dataset.say]||'').trim();
     play([{text:t.textContent, clip:(own?null:'p-'+pad(rw)+'-'+ix), el}]); return; }
