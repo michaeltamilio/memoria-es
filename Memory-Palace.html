@@ -131,6 +131,19 @@ main{padding:8px 11px 0;max-width:760px;margin:0 auto}
 .p[data-role] .r b{color:var(--role);opacity:.85}
 .p[data-role]{border-left:3px solid var(--role);padding-left:8px;
  border-top-left-radius:6px;border-bottom-left-radius:6px}
+.nti{flex:0 0 auto;width:32px;height:28px;display:flex;align-items:center;
+ justify-content:center;border-radius:6px;border:1px solid var(--line);
+ background:var(--bg);color:var(--dim);font-size:14px;line-height:1;
+ padding:0;cursor:pointer;position:relative;opacity:.75}
+.nti::after{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;
+ transform:translate(-50%,-50%)}
+.p.hasnote .nti{opacity:1;color:var(--role,var(--gold));border-color:var(--role,var(--gold))}
+.p.noteopen .nti{background:var(--goldbg)}
+.nt{display:none;margin:0 0 6px}
+.p.noteopen .nt{display:block}
+.ntx{width:100%;font:14px/1.5 system-ui,sans-serif;padding:8px;border-radius:8px;
+ border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.ntx:focus{outline:none;border-color:var(--role,var(--gold))}
 .p .lis{flex:0 0 auto;width:32px;height:28px;display:flex;
  align-items:center;justify-content:center;border-radius:6px;text-decoration:none;
  color:var(--dim);font-size:13px;border:1px solid var(--line);background:var(--bg)}
@@ -207,7 +220,7 @@ const ROWS=DATA.rows, SECS=DATA.sections;
 const pad=n=>String(n).padStart(2,'0');
 const KEY='mg-palace', TKEY='mg-palace-theme';
 let ST=JSON.parse(localStorage.getItem(KEY)||'{}');
-ST.done=ST.done||{}; ST.text=ST.text||{}; ST.opt=ST.opt||{};
+ST.done=ST.done||{}; ST.text=ST.text||{}; ST.opt=ST.opt||{}; ST.note=ST.note||{};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}};
 
 /* ---------- audio ----------
@@ -371,13 +384,19 @@ function rowHTML(r){
     const absent=p.kind==='absent';          // TPT has not published this book yet
     const f=bodyFor(p,id,verOf(r.row));
     const own=f.own, isFull=f.isFull, body=f.body, tag=f.tag;
-    h+='<div class="p" data-id="'+id+'" data-role="'+esc(p.role||'')+'">'+
+    h+='<div class="p'+((ST.note[id]||'').trim()?' hasnote':'')+
+       '" data-id="'+id+'" data-role="'+esc(p.role||'')+'">'+
        '<div class="ph"><span class="ref">'+esc(p.ref)+'</span>'+
+       '<button class="nti" data-note="'+id+'" title="Your mnemonic for this verse">'+
+         '\u270e</button>'+
        (p.listen?'<a class="lis" href="'+esc(p.listen)+'" target="_blank" rel="noopener" '+
           'title="Hear the whole chapter on bible.is">\ud83c\udfa7</a>':'')+'</div>'+
        '<div class="r"><b>'+esc(p.role)+'</b><span class="tag">'+tag+'</span></div>'+
        '<p class="t'+(isFull?'':' ph')+'" data-say="'+id+'">'+esc(body)+'</p>'+
        '<div class="rv" data-peek="'+id+'">tap to reveal</div>'+
+       '<div class="nt"><textarea class="ntx" rows="3" maxlength="400" data-nid="'+id+'" '+
+         'placeholder="The image you placed here \u2014 a few sentences.">'+
+         esc(ST.note[id]||'')+'</textarea></div>'+
        (absent?'<p class="na">The Passion Translation has not released this book yet — '+
                'this is the grid’s key phrase.</p>':'')+
        (isFull||absent?'':'<textarea class="add" rows="3" data-add="'+id+'" '+
@@ -466,6 +485,11 @@ document.addEventListener('click',ev=>{
     const s=document.querySelector('.row[data-row="'+t.dataset.dn+'"]');
     s.classList.toggle('done',!!ST.done[k]);
     t.textContent=ST.done[k]?'✓ Encoded':'Mark encoded'; count(); secCount(); return; }
+  if(t.dataset.note){ const el=t.closest('.p');
+    el.classList.toggle('noteopen');
+    if(el.classList.contains('noteopen')){
+      const ta=el.querySelector('.ntx'); if(ta)setTimeout(()=>ta.focus(),40); }
+    return; }
   if(t.dataset.rv){ const row=+t.dataset.rv;
     const next=verOf(row)==='TPT'?'NKJV':'TPT';
     ST.opt.rv=ST.opt.rv||{}; ST.opt.rv[row]=next; save();
@@ -483,6 +507,13 @@ document.addEventListener('click',ev=>{
     play([{text:t.textContent, clip:(own?null:(useN?'n-':'p-')+pad(rw)+'-'+ix), el}]); return; }
 });
 document.addEventListener('input',ev=>{
+  const nid=ev.target.dataset&&ev.target.dataset.nid;
+  if(nid){
+    const v=ev.target.value;
+    if(v.trim())ST.note[nid]=v; else delete ST.note[nid];
+    ev.target.closest('.p').classList.toggle('hasnote',!!v.trim());
+    save(); return;
+  }
   const a=ev.target.dataset&&ev.target.dataset.add;
   if(!a)return;
   ST.text[a]=ev.target.value; save(); count();
