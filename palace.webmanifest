@@ -1,0 +1,24 @@
+{
+ "id": "./Memory-Palace.html",
+ "name": "Memory Palace",
+ "short_name": "Palace",
+ "start_url": "./Memory-Palace.html",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#14120e",
+ "theme_color": "#14120e",
+ "orientation": "portrait",
+ "icons": [
+  {
+   "src": "palace-icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "palace-icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any maskable"
+  }
+ ]
+}
