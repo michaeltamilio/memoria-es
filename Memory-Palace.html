@@ -8,25 +8,25 @@
 <title>Memory Palace — the Grid in English</title>
 <style>
 :root{
- --ink:#1a1712; --dim:#6b6355; --line:#ded6c6; --bg:#faf7f0; --card:#fff;
- --gold:#8a6d1e; --goldbg:#f5edd4; --accent:#7a1f1f; --ok:#12796a;
+ --ink:#f4f7fa; --dim:#8aa4b8; --line:#1c3344; --bg:#05070a; --card:#0b1218;
+ --gold:#3ec9d6; --goldbg:#0a2a32; --accent:#e05d7a; --ok:#3ec9d6;
 }
-@media (prefers-color-scheme:dark){
- :root:not([data-theme="light"]){--ink:#ece6da;--dim:#9a9081;--line:#39332a;--bg:#14120e;
-  --card:#1c1913;--goldbg:#312a15;--accent:#e0a0a0;--ok:#4fc7b2;}
+:root[data-theme="light"]{
+ --ink:#0b1220; --dim:#4a6678; --line:#c5d5e0; --bg:#f3f7fa; --card:#fff;
+ --gold:#0e8a96; --goldbg:#d7f4f7; --accent:#b42318; --ok:#0e8a96;
 }
-:root:not([data-theme="light"]) .p[data-role="PROMISE"]    { --role:#5fbf87 }
-:root:not([data-theme="light"]) .p[data-role="CONDITION"]  { --role:#e2a05c }
-:root:not([data-theme="light"]) .p[data-role="COMMAND"]    { --role:#7fb0ea }
-:root:not([data-theme="light"]) .p[data-role="CONFESSION"] { --role:#b49ae4 }
-:root:not([data-theme="light"]) .p[data-role="HINDRANCE"]  { --role:#e0849a }
-:root[data-theme="dark"] .p[data-role="PROMISE"]    { --role:#5fbf87 }
-:root[data-theme="dark"] .p[data-role="CONDITION"]  { --role:#e2a05c }
-:root[data-theme="dark"] .p[data-role="COMMAND"]    { --role:#7fb0ea }
-:root[data-theme="dark"] .p[data-role="CONFESSION"] { --role:#b49ae4 }
-:root[data-theme="dark"] .p[data-role="HINDRANCE"]  { --role:#e0849a }
-:root[data-theme="dark"]{--ink:#ece6da;--dim:#9a9081;--line:#39332a;--bg:#14120e;
- --card:#1c1913;--goldbg:#312a15;--accent:#e0a0a0;--ok:#4fc7b2;}
+:root:not([data-theme="light"]) .p[data-role="PROMISE"]    { --role:#3ec9a0 }
+:root:not([data-theme="light"]) .p[data-role="CONDITION"]  { --role:#3ec9d6 }
+:root:not([data-theme="light"]) .p[data-role="COMMAND"]    { --role:#5b9dff }
+:root:not([data-theme="light"]) .p[data-role="CONFESSION"] { --role:#8ec8ff }
+:root:not([data-theme="light"]) .p[data-role="HINDRANCE"]  { --role:#e05d7a }
+:root[data-theme="dark"] .p[data-role="PROMISE"]    { --role:#3ec9a0 }
+:root[data-theme="dark"] .p[data-role="CONDITION"]  { --role:#3ec9d6 }
+:root[data-theme="dark"] .p[data-role="COMMAND"]    { --role:#5b9dff }
+:root[data-theme="dark"] .p[data-role="CONFESSION"] { --role:#8ec8ff }
+:root[data-theme="dark"] .p[data-role="HINDRANCE"]  { --role:#e05d7a }
+:root[data-theme="dark"]{--ink:#f4f7fa;--dim:#8aa4b8;--line:#1c3344;--bg:#05070a;
+ --card:#0b1218;--goldbg:#0a2a32;--accent:#e05d7a;--ok:#3ec9d6;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 body{margin:0;background:var(--bg);color:var(--ink);
  font:16px/1.5 "Iowan Old Style","Palatino Linotype",Georgia,serif;padding-bottom:30vh}
@@ -43,7 +43,7 @@ h1{margin:0;font-size:15px;letter-spacing:-.01em;display:inline-block}
 button{font-family:system-ui,sans-serif;font-size:12.5px;padding:7px 10px;min-height:38px;
  border:1px solid var(--line);background:var(--card);color:var(--ink);
  border-radius:8px;cursor:pointer;white-space:nowrap}
-button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button.on{background:var(--gold);color:#05070a;border-color:var(--gold)}
 .pill{font-family:system-ui,sans-serif;font-size:11px;color:var(--dim);
  margin-left:8px;white-space:nowrap}
 main{padding:8px 11px 0;max-width:760px;margin:0 auto}
@@ -123,10 +123,10 @@ main{padding:8px 11px 0;max-width:760px;margin:0 auto}
  display:flex;gap:6px;align-items:center}
 .p .r b{color:var(--dim);font-weight:700}
 /* A glance should say which of the four a passage is, without reading it. */
-.p[data-role="PROMISE"]    { --role:#2e7d4f }
-.p[data-role="CONDITION"]  { --role:#b3651a }
+.p[data-role="PROMISE"]    { --role:#1a9a78 }
+.p[data-role="CONDITION"]  { --role:#0e8a96 }
 .p[data-role="COMMAND"]    { --role:#2a5ea8 }
-.p[data-role="CONFESSION"] { --role:#6b4fa0 }
+.p[data-role="CONFESSION"] { --role:#3d7ec4 }
 .p[data-role="HINDRANCE"]  { --role:#a8324a }
 .p[data-role] .r b{color:var(--role);opacity:.85}
 .p[data-role]{border-left:3px solid var(--role);padding-left:8px;
@@ -682,7 +682,7 @@ document.addEventListener('input',ev=>{
 
 /* ---------- toolbar ---------- */
 const THEMES=['auto','light','dark'];
-let theme=localStorage.getItem(TKEY)||'auto';
+let theme=localStorage.getItem(TKEY)||'dark';
 function setTheme(t){ theme=t;
   if(t==='auto')document.documentElement.removeAttribute('data-theme');
   else document.documentElement.setAttribute('data-theme',t);

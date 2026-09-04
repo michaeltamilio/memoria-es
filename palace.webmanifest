@@ -5,8 +5,8 @@
  "start_url": "./Memory-Palace.html",
  "scope": "./",
  "display": "standalone",
- "background_color": "#14120e",
- "theme_color": "#14120e",
+ "background_color": "#05070a",
+ "theme_color": "#05070a",
  "orientation": "portrait",
  "icons": [
   {
