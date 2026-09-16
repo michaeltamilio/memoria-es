@@ -188,18 +188,32 @@ body.recall .p:not(.peek) .rv:active{border-color:var(--role,var(--gold));color:
 .spb button{flex:1;min-height:40px}
 #bsync.on{background:var(--ok,#12796a);color:#fff;border-color:transparent}
 #bsync.err{background:var(--accent);color:#fff;border-color:transparent}
-.help{max-width:760px;margin:16px auto 0;padding:0 14px;
- font-family:system-ui,sans-serif;font-size:12.5px;line-height:1.6;color:var(--dim)}
-.help b{color:var(--ink)}
 .cr{max-width:760px;margin:14px auto 0;padding:0 14px 20px;
  font-family:system-ui,sans-serif;font-size:11px;line-height:1.55;color:var(--dim)}
-kbd{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--line);
- border-radius:4px;padding:0 4px}
+.favi{flex:0 0 auto;width:26px;height:24px;display:flex;align-items:center;
+ justify-content:center;border-radius:5px;border:1px solid var(--line);
+ background:var(--bg);color:var(--dim);font-size:13px;line-height:1;
+ padding:0;cursor:pointer;position:relative;opacity:.7;align-self:center}
+.favi::after{content:"";position:absolute;top:50%;left:50%;width:44px;height:44px;
+ transform:translate(-50%,-50%)}
+.p.fav .favi{opacity:1;color:var(--gold);border-color:var(--gold);background:var(--goldbg)}
+.p.fav{background:var(--goldbg)}
+.p.fav[data-role]{border-left-width:6px}
+.row.hasfav{border-color:var(--gold)}
+.row.hasfav .rn::before{content:"★ ";font-size:9px}
+body.favonly .sec.bib,
+body.favonly .sec:not(.hasfav),
+body.favonly .row:not(.hasfav),
+body.favonly .p:not(.fav){display:none}
+.favempty{display:none;margin:18px 10px;font-family:system-ui,sans-serif;
+ font-size:13px;line-height:1.5;color:var(--dim);text-align:center}
+body.favonly.nofavs .favempty{display:block}
 </style></head><body>
 <div class="bar">
   <h1>Memory Palace</h1><span class="pill" id="pill"></span>
   <div class="tools">
     <button id="ball">▶ Play all</button>
+    <button id="bfav" title="Show only favorite verses">☆ Fav</button>
     <button id="bstop">■ Stop</button>
     <button id="breps">Repeat ×1</button>
     <button id="bver" title="Switch translation">NKJV</button>
@@ -230,18 +244,7 @@ kbd{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--lin
   </div>
 </div>
 <main id="main"></main>
-<p class="help"><b>How to use it.</b> The grid is in its five sections. Tap a section to open it, or <b>Play this section</b> to hear every row in it end to end &mdash; one section is about one palace. Tap a row to open it. <b>Play this row</b> speaks the
-number, title and subtitle, then all four passages; <b>Verses only</b> skips the heading once
-you know it. Tap any single passage to hear just that one. The default text is <b>NKJV</b>; tap
-the translation button for TPT. <b>Leo</b> is the xAI narrator for row titles and NKJV;
-<b>Keenan</b> is the original Speechify voice (TPT and NKJV). TPT on Leo uses the browser
-voice. <b>Repeat ×N</b> says each item N
-times before moving on, which is the setting that does the encoding work — set it to 3 or 5
-and let a row run while you walk your loci. <b>Mark encoded</b> tracks which rows are placed.
-<kbd>esc</kbd> stops.
-Passages tagged <b>key phrase</b> have only the grid's short phrase, not the full verse —
-paste the text into the box under any of them and it is saved on this device and spoken
-from then on. <b>Save progress</b> exports everything you have marked and pasted.</p>
+<p class="favempty">No favorites yet — tap ☆ on a verse to pin it here.</p>
 <p class="cr">Scripture taken from the New King James Version®. Copyright © 1982 by Thomas Nelson.
 Used by permission. All rights reserved.
 Scripture quotations marked TPT are from The Passion Translation®.
@@ -256,7 +259,8 @@ const ROWS=DATA.rows, SECS=DATA.sections;
 const pad=n=>String(n).padStart(2,'0');
 const KEY='mg-palace', TKEY='mg-palace-theme';
 let ST=JSON.parse(localStorage.getItem(KEY)||'{}');
-ST.done=ST.done||{}; ST.text=ST.text||{}; ST.opt=ST.opt||{}; ST.note=ST.note||{};
+ST.done=ST.done||{}; ST.text=ST.text||{}; ST.opt=ST.opt||{}; ST.note=ST.note||{}; ST.fav=ST.fav||{};
+let favOnly=!!ST.opt.favonly;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}};
 /* ---------- cross-device sync ----------
    Supabase, talked to over plain REST so the page keeps no dependency and still
@@ -267,7 +271,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}};
 const SB_URL="https://gdxdyvtxozqxujamsdlf.supabase.co";
 const SB_KEY="sb_publishable_K8L_Jj_tckXhkbQyD4DaYg_8JxEuqu3";
 const AKEY="mg-palace-auth";
-const SYNCED=["done","note","text"];          // opt stays local: theme, rate, recall
+const SYNCED=["done","note","text","fav"];     // opt stays local: theme, rate, recall, fav filter
 let auth=JSON.parse(localStorage.getItem(AKEY)||"null");
 let syncing=false, pendingPush=null;
 
@@ -515,15 +519,62 @@ function render(){
   });
   m.innerHTML=h;
   count();
+  applyFavFilter();
+}
+function isFav(id){ return !!ST.fav[id]; }
+function favCount(){ return Object.keys(ST.fav).filter(k=>ST.fav[k]).length; }
+function rowHasFav(row){
+  const r=ROWS.find(x=>x.row===row); if(!r)return false;
+  return r.passages.some((_,i)=>ST.fav[row+'.'+i]);
+}
+function applyFavFilter(){
+  document.body.classList.toggle('favonly', favOnly);
+  const n=favCount();
+  document.body.classList.toggle('nofavs', favOnly && n===0);
+  $$('.sec[data-sec]').forEach(sec=>{
+    const si=+sec.dataset.sec;
+    const has=ROWS.filter(r=>r.sec===si).some(r=>rowHasFav(r.row));
+    sec.classList.toggle('hasfav', has);
+    if(favOnly && has){
+      sec.classList.add('open');
+      sec.querySelectorAll('.row.hasfav').forEach(x=>x.classList.add('open'));
+    }
+  });
+  const b=$('#bfav');
+  if(b){
+    b.classList.toggle('on', favOnly);
+    b.textContent = n ? ('★ Fav '+n) : '☆ Fav';
+    b.title = favOnly ? 'Showing favorites — tap to show all' : 'Show only favorite verses';
+  }
+  const play=$('#ball');
+  if(play) play.textContent = favOnly ? '▶ Play favorites' : '▶ Play all';
+}
+function favItems(){
+  const items=[];
+  ROWS.forEach(r=>{
+    if(!rowHasFav(r.row)) return;
+    const rowEl=document.querySelector('.row[data-row="'+r.row+'"]');
+    if(rowEl) rowEl.classList.add('open');
+    r.passages.forEach((p,i)=>{
+      const id=r.row+'.'+i;
+      if(!ST.fav[id]) return;
+      const el=rowEl && rowEl.querySelector('.p[data-id="'+id+'"]');
+      const f=bodyFor(p,id,verOf(r.row));
+      if(f.body) items.push({text:p.ref+'. '+f.body,
+        clip:(f.own?null:(f.useN?'n-':'p-')+pad(r.row)+'-'+i), el});
+    });
+  });
+  return items;
 }
 function rowHTML(r){
   const done=ST.done['r'+r.row]?' done':'';
+  const favrow=rowHasFav(r.row)?' hasfav':'';
   // "Born Again — the one door into everything that follows": the part before the
   // dash identifies the row, the rest is elaboration. Collapsed, one line is enough.
   const dash=r.title.indexOf('\u2014');
   const head=dash>0?r.title.slice(0,dash).trim():r.title;
   const tail=dash>0?r.title.slice(dash).trim():'';
-  let h='<section class="row'+done+'" data-row="'+r.row+'" data-ver="'+verOf(r.row)+'">'+
+  let h='<section class="row'+done+favrow+'" data-row="'+r.row+'" data-ver="'+verOf(r.row)+'">'+
      '<div class="rh"><div class="rn">'+r.row+'</div><div class="rt">'+
      '<b>'+esc(head)+(tail?'<i class="tail"> '+esc(tail)+'</i>':'')+'</b>'+
      '</div><div class="rx"></div></div>'+
@@ -539,10 +590,12 @@ function rowHTML(r){
     const absent=p.kind==='absent';          // TPT has not published this book yet
     const f=bodyFor(p,id,verOf(r.row));
     const own=f.own, isFull=f.isFull, body=f.body, tag=f.tag;
-    h+='<div class="p'+((ST.note[id]||'').trim()?' hasnote':'')+
+    h+='<div class="p'+(isFav(id)?' fav':'')+((ST.note[id]||'').trim()?' hasnote':'')+
        '" data-id="'+id+'" data-role="'+esc(p.role||'')+'">'+
        '<div class="ph"><span class="meta"><span class="ref">'+esc(p.ref)+'</span>'+
        '<span class="r"><b>'+esc(p.role)+'</b><span class="tag">'+tag+'</span></span></span>'+
+       '<button class="favi" data-fav="'+id+'" title="Favorite this verse">'+
+         (isFav(id)?'★':'☆')+'</button>'+
        '<button class="nti" data-note="'+id+'" title="Your mnemonic for this verse">'+
          '\u270e</button>'+
        (p.listen?'<a class="lis" href="'+esc(p.listen)+'" target="_blank" rel="noopener" '+
@@ -588,6 +641,7 @@ function rowItems(row, versesOnly){
   }
   r.passages.forEach((p,i)=>{
     const id=r.row+'.'+i;
+    if(favOnly && !ST.fav[id]) return;
     const el=sec.querySelector('.p[data-id="'+id+'"]');
     const own=(ST.text[id]||'').trim();
     // Both translations are recorded: p-NN-i is TPT, n-NN-i is NKJV. Pick the clip
@@ -602,6 +656,7 @@ function rowItems(row, versesOnly){
 function secItems(si, versesOnly){
   const items=[];
   ROWS.filter(r=>r.sec===si).forEach(r=>{
+    if(favOnly && !rowHasFav(r.row)) return;
     const sec=document.querySelector('.row[data-row="'+r.row+'"]');
     if(sec)sec.classList.add('open');
     items.push(...rowItems(r.row, versesOnly));
@@ -611,6 +666,19 @@ function secItems(si, versesOnly){
 document.addEventListener('click',ev=>{
   const t=ev.target;
   if(t.closest('a')) return;          // external chapter links open on their own
+  const fv=t.closest('[data-fav]');
+  if(fv&&fv.dataset.fav){
+    const id=fv.dataset.fav;
+    if(ST.fav[id]) delete ST.fav[id]; else ST.fav[id]=true;
+    stamp('fav',id); save(); queueSync();
+    const el=fv.closest('.p');
+    el.classList.toggle('fav', !!ST.fav[id]);
+    fv.textContent=ST.fav[id]?'★':'☆';
+    const rowEl=el.closest('.row');
+    rowEl.classList.toggle('hasfav', rowHasFav(+rowEl.dataset.row));
+    applyFavFilter();
+    return;
+  }
   const bk=t.closest('.bk');
   if(bk&&bk.classList.contains('has')){ showBook(bk.dataset.bk); return; }
   const bv=t.closest('.bv');
@@ -786,7 +854,10 @@ $('#bopen').onclick=()=>{ const expand=$$('.row.open').length===0;
   $$('.row').forEach(r=>r.classList.toggle('open',expand));
   save();
   $('#bopen').textContent=expand?'Collapse all':'Expand all'; };
-$('#ball').onclick=()=>{ const items=[];
+$('#bfav').onclick=()=>{ favOnly=!favOnly; ST.opt.favonly=favOnly; save(); applyFavFilter(); };
+$('#ball').onclick=()=>{
+  if(favOnly){ const items=favItems(); if(items.length) play(items); return; }
+  const items=[];
   $$('.row').forEach(r=>r.classList.add('open'));
   ROWS.forEach(r=>items.push(...rowItems(r.row,false)));
   play(items); };
