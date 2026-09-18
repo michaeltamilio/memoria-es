@@ -170,8 +170,10 @@ body.recall .p:not(.peek) .rv:active{border-color:var(--role,var(--gold));color:
 .tag{font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.06em;
  text-transform:uppercase;color:var(--dim);border:1px solid var(--line);
  border-radius:4px;padding:1px 4px}
-.pc{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:3px}
-.pc button{font-size:11px;padding:3px 8px;min-height:28px}
+.pc{display:flex;gap:3px;flex-wrap:nowrap;margin-bottom:3px;overflow-x:auto;
+ scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.pc::-webkit-scrollbar{display:none}
+.pc button{font-size:11px;padding:3px 6px;min-height:28px}
 .add{width:100%;font:14px/1.5 system-ui,sans-serif;padding:8px;border-radius:8px;
  border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:6px}
 #syncpanel{display:none;position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.55);
@@ -579,9 +581,9 @@ function rowHTML(r){
      '<b>'+esc(head)+(tail?'<i class="tail"> '+esc(tail)+'</i>':'')+'</b>'+
      '</div><div class="rx"></div></div>'+
      '<div class="rb">'+
-     '<div class="pc"><button data-pr="'+r.row+'">▶ Play this row</button>'+
-     '<button data-pv="'+r.row+'">▶ Verses only</button>'+
-     '<button data-dn="'+r.row+'">'+(done?'✓ Encoded':'Mark encoded')+'</button>'+
+     '<div class="pc"><button data-pr="'+r.row+'">&gt;Play Row</button>'+
+     '<button data-pv="'+r.row+'">&gt;Verses</button>'+
+     '<button data-dn="'+r.row+'"'+(done?' class="on"':'')+'>Encoded</button>'+
      (r.passages.some(x=>x.nkjv)
         ? '<button data-rv="'+r.row+'" title="Switch this row\u2019s translation">'+
           verOf(r.row)+'</button>' : '')+'</div>';
@@ -707,7 +709,7 @@ document.addEventListener('click',ev=>{
     ST.done[k]=!ST.done[k]||undefined; stamp('done',k); save(); queueSync();
     const s=document.querySelector('.row[data-row="'+t.dataset.dn+'"]');
     s.classList.toggle('done',!!ST.done[k]);
-    t.textContent=ST.done[k]?'✓ Encoded':'Mark encoded'; count(); secCount(); return; }
+    t.classList.toggle('on',!!ST.done[k]); count(); secCount(); return; }
   if(t.dataset.note){ const el=t.closest('.p');
     el.classList.toggle('noteopen');
     if(el.classList.contains('noteopen')){
